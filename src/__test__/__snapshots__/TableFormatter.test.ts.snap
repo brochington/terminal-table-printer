@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TableFormatter > should align text correctly 1`] = `
+"┌────┬─────────────────────────────────────────────────┬───────┐
+│ id │ name                                            │ price │
+├────┼─────────────────────────────────────────────────┼───────┤
+│ 1  │ A very long item name that will need truncation │ 12.99 │
+│ 2  │ Short name                                      │     5 │
+└────┴─────────────────────────────────────────────────┴───────┘"
+`;
+
+exports[`TableFormatter > should handle rowLimit and rowOffset 1`] = `
+"┌────┬────────────┬───────┐
+│ id │ name       │ price │
+├────┼────────────┼───────┤
+│ 2  │ Short name │ 5     │
+└────┴────────────┴───────┘"
+`;
+
+exports[`TableFormatter > should render a basic table correctly 1`] = `
+"┌────┬─────────────────────────────────────────────────┬───────┐
+│ id │ name                                            │ price │
+├────┼─────────────────────────────────────────────────┼───────┤
+│ 1  │ A very long item name that will need truncation │ 12.99 │
+│ 2  │ Short name                                      │ 5     │
+└────┴─────────────────────────────────────────────────┴───────┘"
+`;
+
+exports[`TableFormatter > should truncate text when maxWidth is exceeded 1`] = `
+"┌───┬──────────────────────────────┬───┐
+│ … │ name                         │ … │
+├───┼──────────────────────────────┼───┤
+│ 1 │ A very long item name that … │ … │
+│ 2 │ Short name                   │ 5 │
+└───┴──────────────────────────────┴───┘"
+`;
