@@ -13,12 +13,24 @@ A TypeScript library for rendering JSON or Apache Arrow data into styled, respon
 ## Installation
 
 ```bash
-npm install terminal-table-printer
+npm install @brochington/terminal-table-printer
 ```
+
+## Examples
+
+### `npm run example`
+
+<img width="867" height="1545" alt="Screenshot 2025-09-07 at 4 45 24 PM" src="https://github.com/user-attachments/assets/6dc95aac-bc03-4ab9-b3c1-e07dbe9b64ce" />
+
+### `npm run matrix`
+
+[Kapture 2025-09-07 at 16.47.02.webm](https://github.com/user-attachments/assets/006acbe7-acd2-4c09-a022-76a6d38861b6)
+
 
 ## Quick Start
 
 ```typescript
+
 import { TableFormatter, JSONDataSource } from 'terminal-table-printer';
 
 const data = [
