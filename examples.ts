@@ -57,7 +57,6 @@ const SOLARIZED_DARK_THEME: TableTheme = {
   footer: { color: '#586e75', italic: true },
 };
 
-// --- DATA (for demonstration) ---
 const sampleData = [
   {
     id: 1001,
@@ -242,23 +241,21 @@ for (let i = 0; i < rows2D; i++) {
 const gradientDataSource = new JSONDataSource(gradientData);
 
 const gradientConfig: TableConfig = {
-  // Use an "invisible" border for a seamless grid
   border: {
     horizontal: ' ', vertical: ' ', topLeft: ' ', topRight: ' ',
     bottomLeft: ' ', bottomRight: ' ', headerLeft: ' ', headerRight: ' ',
     topSeparator: ' ', middleSeparator: ' ', bottomSeparator: ' ', cellSeparator: ' ',
   },
-  columns: {}, // We will generate this dynamically
+  columns: {},
 };
 
 // Dynamically generate the column configuration
 for (let j = 0; j < cols2D; j++) {
-  const hue = Math.floor((j / cols2D) * 360); // Hue changes horizontally
+  const hue = Math.floor((j / cols2D) * 360);
 
   gradientConfig.columns![`c${j}`] = {
     header: '',
     padding: { left: 0, right: 0 },
-    // The formatter is the key. It returns a pre-styled string.
     formatter: (value) => {
       const rowIndex = value as number;
       // Lightness changes vertically from 25% to 75%

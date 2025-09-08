@@ -539,10 +539,6 @@ export class TableFormatter {
 			const totalPadding = padding.left + padding.right;
 			return line.repeat(w + totalPadding);
 		});
-		// const padding = this.config.padding ?? DEFAULT_PADDING;
-		// const totalPadding = padding.left + padding.right;
-		// const line = this.borderChars[lineKey];
-		// const parts = widths.map((w) => line.repeat(w + totalPadding));
 		const left = this.borderChars[leftKey];
 		const middle = this.borderChars[middleKey];
 		const right = this.borderChars[rightKey];

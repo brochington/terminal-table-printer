@@ -41,8 +41,8 @@ console.log(chalk.bold.yellow('\n--- 5. "Matrix" Digital Rain Animation ---'));
 console.log('Starting animation... Press Ctrl+C to exit.');
 
 setTimeout(() => {
-  const rainRows = 25; // A bit taller for a better effect
-  const rainCols = 80; // Wider to fill more of the screen
+  const rainRows = 30; // A bit taller for a better effect
+  const rainCols = 100; // Wider to fill more of the screen
 
   interface RainDrop {
     col: number;
@@ -74,7 +74,7 @@ setTimeout(() => {
           if (i === 0) {
             grid[charRow][drop.col] = chalk.whiteBright(char);
           } else {
-            const lightness = 60 - i * (55 / drop.length); // Fade from 60% to 5% lightness
+            const lightness = 45 - i * (55 / drop.length); // Fade from 60% to 5% lightness
             if (lightness > 0) {
               const hex = hslToHex(120, 90, lightness); // Pure green hue (120)
               grid[charRow][drop.col] = chalk.hex(hex)(char);
@@ -86,7 +86,6 @@ setTimeout(() => {
 
     activeDrops = activeDrops.filter((drop) => drop.y - drop.length < rainRows);
 
-    // Add new drops more frequently to keep the screen active
     if (Math.random() > 0.2) {
       activeDrops.push({
         col: Math.floor(Math.random() * rainCols),
@@ -108,17 +107,17 @@ setTimeout(() => {
 
     const rainConfig: TableConfig = {
       border: {
-        horizontal: ' ',
-        vertical: ' ',
-        topLeft: ' ',
-        topRight: ' ',
-        bottomLeft: ' ',
-        bottomRight: ' ',
-        headerLeft: ' ',
-        headerRight: ' ',
-        topSeparator: ' ',
-        middleSeparator: ' ',
-        bottomSeparator: ' ',
+        horizontal: '',
+        vertical: '',
+        topLeft: '',
+        topRight: '',
+        bottomLeft: '',
+        bottomRight: '',
+        headerLeft: '',
+        headerRight: '',
+        topSeparator: '',
+        middleSeparator: '',
+        bottomSeparator: '',
         cellSeparator: '',
       },
       columns: {},
@@ -135,9 +134,8 @@ setTimeout(() => {
     const rainFormatter = new TableFormatter(rainDataSource, rainConfig);
 
     console.clear();
-    process.stdout.write(rainFormatter.render()); // Use process.stdout.write for smoother animation
+    process.stdout.write(rainFormatter.render());
   };
 
-  // Start the animation loop, updating every 80 milliseconds for a faster, smoother feel
   setInterval(updateAndRenderRain, 50);
 }, 1000);

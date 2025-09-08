@@ -2,7 +2,7 @@ import type { BackgroundColorName, ForegroundColorName } from "chalk";
 
 export type JSONObject = Record<string, CellTypes>;
 
-// Remove circular dependency
+// Prevent circular dependency
 export type CellTypeObject = Record<string, string | number | boolean | null>;
 
 /** Basic data types that can exist in a cell. */
