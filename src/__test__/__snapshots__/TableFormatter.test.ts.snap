@@ -1,5 +1,14 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`TableFormatter > Advanced Formatting and Dynamic Styles > should handle per-column padding overrides 1`] = `
+"┌────┬─────────────────────────────────────────────────────┬───────┐
+│ id │   name                                              │ price │
+├────┼─────────────────────────────────────────────────────┼───────┤
+│ 1  │   A very long item name that will need truncation   │ 12.99 │
+│ 2  │   Short name                                        │ 5     │
+└────┴─────────────────────────────────────────────────────┴───────┘"
+`;
+
 exports[`TableFormatter > should align text correctly 1`] = `
 "┌────┬─────────────────────────────────────────────────┬───────┐
 │ id │ name                                            │ price │

@@ -24,7 +24,10 @@
     "build:cjs": "tsc --module commonjs --outDir dist/cjs",
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "prepublishOnly": "npm run build",
-    "example": "ts-node --project tsconfig.node.json ./examples.ts"
+    "example": "ts-node --project tsconfig.node.json ./examples.ts",
+    "matrix": "ts-node --project tsconfig.node.json ./matrix.ts",
+    "format": "biome format --write",
+    "lint": "biome lint --write"
   },
   "dependencies": {
     "apache-arrow": "^21.0.0",
@@ -32,6 +35,7 @@
     "string-width": "^8.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.3",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
