@@ -13,7 +13,7 @@ A TypeScript library for rendering JSON or Apache Arrow data into styled, respon
 ## Installation
 
 ```bash
-npm install @brochington/terminal-table-printer
+npm install terminal-table-printer
 ```
 
 ## Examples
