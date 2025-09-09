@@ -9,6 +9,50 @@ exports[`TableFormatter > Advanced Formatting and Dynamic Styles > should handle
 └────┴─────────────────────────────────────────────────────┴───────┘"
 `;
 
+exports[`TableFormatter > Responsive Layout (Flexbox & Sizing) > should correctly handle a complex scenario with all constraints 1`] = `
+"┌─────────────────┬───────────────┬───────────────────────────────┬────────────┐
+│ a               │ b             │ c                             │ d          │
+├─────────────────┼───────────────┼───────────────────────────────┼────────────┤
+│ short           │ medium length │ c                             │ d          │
+└─────────────────┴───────────────┴───────────────────────────────┴────────────┘"
+`;
+
+exports[`TableFormatter > Responsive Layout (Flexbox & Sizing) > should divide extra space proportionally among flexGrow columns 1`] = `
+"┌────┬─────────────────────────────────────────────────────────────────────────────┬───────┬───────────────────────────┐
+│ id │ name                                                                        │ price │ category                  │
+├────┼─────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────────────┤
+│  1 │ A very long item name that will need truncation                             │ 12.99 │ Electronics               │
+│  2 │ Short name                                                                  │     5 │ Groceries                 │
+└────┴─────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────────────┘"
+`;
+
+exports[`TableFormatter > Responsive Layout (Flexbox & Sizing) > should expand a flexGrow column to fill available space 1`] = `
+"┌────┬───────────────────────────────────────────────────────────────────────┬───────┬─────────────┐
+│ id │ name                                                                  │ price │ category    │
+├────┼───────────────────────────────────────────────────────────────────────┼───────┼─────────────┤
+│ 1  │ A very long item name that will need truncation                       │ 12.99 │ Electronics │
+│ 2  │ Short name                                                            │     5 │ Groceries   │
+└────┴───────────────────────────────────────────────────────────────────────┴───────┴─────────────┘"
+`;
+
+exports[`TableFormatter > Responsive Layout (Flexbox & Sizing) > should not let a flexGrow column exceed its maxWidth 1`] = `
+"┌────┬──────────────────────────────────────────────────────────────────────────────────┬───────┬──────────────────────┐
+│ id │ name                                                                             │ price │ category             │
+├────┼──────────────────────────────────────────────────────────────────────────────────┼───────┼──────────────────────┤
+│ 1  │ A very long item name that will need truncation                                  │ 12.99 │ Electronics          │
+│ 2  │ Short name                                                                       │     5 │ Groceries            │
+└────┴──────────────────────────────────────────────────────────────────────────────────┴───────┴──────────────────────┘"
+`;
+
+exports[`TableFormatter > Responsive Layout (Flexbox & Sizing) > should shrink columns to fit maxWidth while respecting minWidth 1`] = `
+"┌───┬─────────────────────────────────────┬────────────┬───┐
+│ … │ name                                │ price      │ … │
+├───┼─────────────────────────────────────┼────────────┼───┤
+│ 1 │ A very long item name that will ne… │ 12.99      │ … │
+│ 2 │ Short name                          │ 5          │ … │
+└───┴─────────────────────────────────────┴────────────┴───┘"
+`;
+
 exports[`TableFormatter > should align text correctly 1`] = `
 "┌────┬─────────────────────────────────────────────────┬───────┐
 │ id │ name                                            │ price │

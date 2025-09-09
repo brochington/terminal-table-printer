@@ -53,6 +53,11 @@ export interface ColumnConfig {
 	formatter?: (value: CellTypes, rowIndex: number) => string;
 	cellStyle?: (value: CellTypes) => Style | undefined;
 	padding?: { left: number; right: number };
+
+	// --- RESPONSIVE PROPERTIES ---
+	minWidth?: number; // Minimum content width
+	maxWidth?: number; // Maximum content width
+	flexGrow?: number; // Ratio to grow relative to other flex columns
 }
 
 /** Information passed to the footer rendering function. */
@@ -74,8 +79,6 @@ export interface TableConfig {
 	border?: Partial<BorderChars>;
 	columns?: Record<string, ColumnConfig>;
 	footer?: (info: FooterInfo) => string;
-
-	// New Theming and Style Options
 	theme?: Partial<TableTheme>;
 	alternatingRows?: boolean;
 	rowStyle?: (row: JSONObject) => Style | undefined;

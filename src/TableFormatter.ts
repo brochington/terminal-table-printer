@@ -183,16 +183,22 @@ export class TableFormatter {
 	}
 
 	public render(): string {
+		// 1. Determine available width. Use configured maxWidth, else terminal width, else 80.
+		const availableWidth = this.config.maxWidth ?? process.stdout.columns ?? 80;
+
 		const columnNames = this.source.getColumnNames();
 		if (columnNames.length === 0) {
 			return this.applyStyle("(No data)", this.theme.cell);
 		}
 
+		// 2. Paginate data by getting the subset of rows to be displayed.
 		const totalRows = this.source.getRowCount();
 		const rowOffset = this.config.rowOffset ?? 0;
 		const rowLimit = this.config.rowLimit ?? totalRows;
 		const startRow = Math.max(0, rowOffset);
 		const endRow = Math.min(totalRows, startRow + rowLimit);
+
+		// 3. Format the data window by applying per-column formatters.
 		const formattedDataWindow: string[][] = [];
 		for (let i = startRow; i < endRow; i++) {
 			const row = this.source.getArrayRow(i);
@@ -201,7 +207,7 @@ export class TableFormatter {
 					const colName = columnNames[colIdx];
 					const formatter = this.config.columns?.[colName]?.formatter;
 					if (formatter) {
-						return formatter(cell, i); // Pass the rowIndex to the formatter
+						return formatter(cell, i);
 					}
 					if (typeof cell === "object" && cell !== null) {
 						return JSON.stringify(cell);
@@ -215,20 +221,32 @@ export class TableFormatter {
 			(name) => this.config.columns?.[name]?.header ?? name,
 		);
 
+		// 4. Calculate final column widths based on content and available space.
 		const idealWidths = this.calculateColumnWidths(
 			headerLabels,
 			formattedDataWindow,
 		);
-		const finalWidths = this.distributeWidths(idealWidths);
+		const finalWidths = this.distributeWidths(idealWidths, availableWidth);
+
 		const output: string[] = [];
 
-		const padding = this.config.padding ?? DEFAULT_PADDING;
+		// 5. Calculate the total inner width, which is essential for the footer.
+		// This respects per-column padding overrides.
 		const totalContentWidth = finalWidths.reduce((a, b) => a + b, 0);
-		const totalPadding = (padding.left + padding.right) * finalWidths.length;
+		let totalPadding = 0;
+		for (let i = 0; i < finalWidths.length; i++) {
+			const colName = columnNames[i];
+			const colPadding =
+				this.config.columns?.[colName]?.padding ??
+				this.config.padding ??
+				DEFAULT_PADDING;
+			totalPadding += colPadding.left + colPadding.right;
+		}
 		const innerBorderWidth =
 			finalWidths.length > 1 ? finalWidths.length - 1 : 0;
 		const totalInnerWidth = totalContentWidth + totalPadding + innerBorderWidth;
 
+		// 6. Render the top border, header, and header separator.
 		output.push(
 			this.renderSeparator(
 				finalWidths,
@@ -249,18 +267,18 @@ export class TableFormatter {
 			),
 		);
 
+		// 7. Render the data rows.
 		if (formattedDataWindow.length === 0) {
+			const emptyRowContent = columnNames.map(() => "");
+			const emptyRowObject = columnNames.reduce(
+				(acc, name) => ({ ...acc, [name]: null }),
+				{},
+			);
 			output.push(
-				this.renderRow(
-					columnNames.map(() => ""),
-					{},
-					finalWidths,
-					0,
-				),
+				this.renderRow(emptyRowContent, emptyRowObject, finalWidths, 0),
 			);
 		} else {
 			formattedDataWindow.forEach((row, i) => {
-				// Get the original row data for conditional styling
 				const originalRow = this.source.getObjectRow(startRow + i);
 				output.push(
 					this.renderRow(row, originalRow, finalWidths, startRow + i),
@@ -268,17 +286,22 @@ export class TableFormatter {
 			});
 		}
 
+		// 8. Render the footer (if configured) or the final bottom border.
+		// This block contains the specific logic to match your desired output.
 		if (this.config.footer) {
+			// Render the separator line that closes the table body.
+			// It uses bottom junction characters (e.g., '╩') to meet the column lines.
 			output.push(
 				this.renderSeparator(
 					finalWidths,
-					"headerLeft",
-					"bottomSeparator",
-					"headerRight",
+					"headerLeft", // e.g., '╠'
+					"bottomSeparator", // e.g., '╩'
+					"headerRight", // e.g., '╣'
 					"horizontal",
 				),
 			);
 
+			// Prepare the footer text as a single, wide cell.
 			const footerInfo: FooterInfo = {
 				totalRows,
 				displayedRows: endRow - startRow,
@@ -286,22 +309,25 @@ export class TableFormatter {
 				startRow,
 				endRow,
 			};
-
 			const footerText = this.config.footer(footerInfo);
+			const { vertical, bottomLeft, bottomRight, horizontal } =
+				this.borderChars;
 
+			// Pad the content to span the entire calculated inner width of the table.
 			const content = ` ${footerText}`;
 			const paddedFooter = this.applyStyle(
 				content.padEnd(totalInnerWidth, " "),
 				this.theme.footer,
 			);
-			const { vertical } = this.borderChars;
+
+			// Render the footer text row, enclosed by vertical walls.
 			output.push(`${vertical}${paddedFooter}${vertical}`);
 
-			const solidLine = this.borderChars.horizontal.repeat(totalInnerWidth);
-			output.push(
-				`${this.borderChars.bottomLeft}${solidLine}${this.borderChars.bottomRight}`,
-			);
+			// Render the final, solid bottom line with no column junctions.
+			const solidLine = horizontal.repeat(totalInnerWidth);
+			output.push(`${bottomLeft}${solidLine}${bottomRight}`);
 		} else {
+			// If no footer, render the standard closing border with column junctions.
 			output.push(
 				this.renderSeparator(
 					finalWidths,
@@ -332,51 +358,130 @@ export class TableFormatter {
 		return widths;
 	}
 
-	private distributeWidths(idealWidths: number[]): number[] {
-		const { maxWidth } = this.config;
-		if (!maxWidth) {
-			return idealWidths;
-		}
-
+	private distributeWidths(
+		idealWidths: number[],
+		availableWidth: number,
+	): number[] {
 		const columnNames = this.source.getColumnNames();
-		const borderOverhead = idealWidths.length + 1;
+		const finalWidths = [...idealWidths];
 
-		// Calculate total width using per-column padding
-		let totalWidth = borderOverhead;
+		const borderOverhead = finalWidths.length + 1;
+		let totalPadding = 0;
 		for (let i = 0; i < idealWidths.length; i++) {
 			const colName = columnNames[i];
 			const padding =
 				this.config.columns?.[colName]?.padding ??
 				this.config.padding ??
 				DEFAULT_PADDING;
-			totalWidth += idealWidths[i] + padding.left + padding.right;
-		}
-		if (totalWidth <= maxWidth) {
-			return idealWidths;
+			totalPadding += padding.left + padding.right;
 		}
 
-		const finalWidths = [...idealWidths];
-		let excessWidth = totalWidth - maxWidth;
+		const contentWidth = availableWidth - borderOverhead - totalPadding;
 
-		const shrinkable = finalWidths
-			.map((width, index) => ({ width, index }))
-			.sort((a, b) => b.width - a.width);
+		// 1. Apply minWidth and maxWidth constraints
+		let totalConstrainedWidth = 0;
+		const flexColumns: number[] = [];
+		let totalFlexGrow = 0;
 
-		while (excessWidth > 0 && shrinkable.length > 0) {
-			let shrunkInCycle = false;
-			for (const col of shrinkable) {
-				const minWidth = stringWidth(
-					this.config.truncationChar ?? DEFAULT_TRUNCATION_CHAR,
+		for (let i = 0; i < finalWidths.length; i++) {
+			const colName = columnNames[i];
+			const colConfig = this.config.columns?.[colName];
+
+			const min = colConfig?.minWidth ?? 1;
+			const max = colConfig?.maxWidth ?? Infinity;
+
+			finalWidths[i] = Math.max(min, Math.min(finalWidths[i], max));
+			totalConstrainedWidth += finalWidths[i];
+
+			if (colConfig?.flexGrow) {
+				totalFlexGrow += colConfig.flexGrow;
+				flexColumns.push(i);
+			}
+		}
+
+		// --- Start of Corrected Growth Phase ---
+
+		// 2. Growth Phase (Iterative): Distribute remaining space to flex columns.
+		let remainingSpace = contentWidth - totalConstrainedWidth;
+		// Keep looping as long as there is space and potential for growth.
+		while (remainingSpace > 0 && flexColumns.length > 0) {
+			// Find columns that can still grow (haven't hit their maxWidth).
+			const growableColumns = flexColumns.filter((i) => {
+				const max = this.config.columns?.[columnNames[i]]?.maxWidth ?? Infinity;
+				return finalWidths[i] < max;
+			});
+
+			if (growableColumns.length === 0) break; // No columns can grow further.
+
+			// Calculate the total flex factor of only the columns that can still grow.
+			const totalGrowableFlex = growableColumns.reduce((sum, i) => {
+				return sum + (this.config.columns?.[columnNames[i]]?.flexGrow ?? 0);
+			}, 0);
+
+			if (totalGrowableFlex === 0) break; // No flex factor left.
+
+			let spaceDistributedInCycle = 0;
+			const spaceToDistribute = remainingSpace;
+
+			for (const i of growableColumns) {
+				const colConfig = this.config.columns?.[columnNames[i]];
+				const flexGrow = colConfig?.flexGrow ?? 0;
+				const max = colConfig?.maxWidth ?? Infinity;
+
+				// Calculate this column's share of the *currently available* space.
+				const share = Math.floor(
+					spaceToDistribute * (flexGrow / totalGrowableFlex),
 				);
-				if (finalWidths[col.index] > minWidth) {
-					finalWidths[col.index]--;
-					excessWidth--;
-					shrunkInCycle = true;
-					if (excessWidth === 0) break;
+
+				// The actual growth is the smaller of its share or the room it has left.
+				const growth = Math.min(share, max - finalWidths[i]);
+
+				if (growth > 0) {
+					finalWidths[i] += growth;
+					spaceDistributedInCycle += growth;
 				}
 			}
-			if (!shrunkInCycle) break;
+
+			// If we distributed no space (due to rounding on small numbers), exit to prevent an infinite loop.
+			if (spaceDistributedInCycle === 0) break;
+
+			remainingSpace -= spaceDistributedInCycle;
+			totalConstrainedWidth += spaceDistributedInCycle;
 		}
+
+		// --- End of Corrected Growth Phase ---
+
+		// 3. Shrink Phase: If we're still over budget, shrink columns.
+		let excessWidth = totalConstrainedWidth - contentWidth;
+		if (excessWidth > 0) {
+			const shrinkable = finalWidths
+				.map((width, index) => {
+					const colName = columnNames[index];
+					const minWidth = this.config.columns?.[colName]?.minWidth ?? 1;
+					return {
+						index,
+						width,
+						canShrinkBy: width - minWidth,
+					};
+				})
+				.filter((c) => c.canShrinkBy > 0)
+				.sort((a, b) => b.width - a.width);
+
+			while (excessWidth > 0 && shrinkable.length > 0) {
+				let shrunkInCycle = false;
+				for (const col of shrinkable) {
+					if (col.canShrinkBy > 0) {
+						finalWidths[col.index]--;
+						col.canShrinkBy--;
+						excessWidth--;
+						shrunkInCycle = true;
+						if (excessWidth === 0) break;
+					}
+				}
+				if (!shrunkInCycle) break;
+			}
+		}
+
 		return finalWidths;
 	}
 

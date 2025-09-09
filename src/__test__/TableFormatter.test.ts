@@ -214,4 +214,156 @@ describe("TableFormatter", () => {
 			expect(failRow).toMatch(/\u001b\[1m\s*FAIL\s*\u001b\[22m/);
 		});
 	});
+
+	describe("Responsive Layout (Flexbox & Sizing)", () => {
+		const responsiveData: JSONObject[] = [
+			{
+				id: 1,
+				name: "A very long item name that will need truncation",
+				price: 12.99,
+				category: "Electronics",
+			},
+			{
+				id: 2,
+				name: "Short name",
+				price: 5.0,
+				category: "Groceries",
+			},
+		];
+		const responsiveSource = new JSONDataSource(responsiveData);
+
+		it("should expand a flexGrow column to fill available space", () => {
+			const formatter = new TableFormatter(responsiveSource, {
+				// Set a generous maxWidth to ensure there is space to grow into
+				maxWidth: 100,
+				columns: {
+					id: {
+						// This column should remain at its ideal width
+					},
+					name: {
+						flexGrow: 1, // This column should expand to take up all remaining space
+					},
+					price: {
+						alignment: "right",
+					},
+				},
+			});
+			const output = formatter.render();
+
+			// Verify the total width respects maxWidth
+			const firstLine = output.split("\n")[0];
+			expect(firstLine.length).toBe(100);
+
+			// Snapshot to visually confirm the 'name' column is very wide
+			expect(output).toMatchSnapshot();
+		});
+
+		it("should divide extra space proportionally among flexGrow columns", () => {
+			const formatter = new TableFormatter(responsiveSource, {
+				maxWidth: 120,
+				columns: {
+					id: {
+						alignment: "right",
+					},
+					name: {
+						flexGrow: 2, // Should get twice as much extra space
+					},
+					price: {
+						alignment: "right",
+					},
+					category: {
+						flexGrow: 1, // Should get one share of extra space
+					},
+				},
+			});
+			const output = formatter.render();
+
+			// Verify the total width respects maxWidth
+			const firstLine = output.split("\n")[0];
+			expect(firstLine.length).toBe(120);
+
+			// Snapshot will show that 'name' grew more than 'category'
+			expect(output).toMatchSnapshot();
+		});
+
+		it("should shrink columns to fit maxWidth while respecting minWidth", () => {
+			const formatter = new TableFormatter(responsiveSource, {
+				// Force shrinking
+				maxWidth: 60,
+				columns: {
+					id: {},
+					name: {
+						minWidth: 25, // This long column cannot shrink below 25
+					},
+					price: {
+						minWidth: 10,
+					},
+					category: {},
+				},
+			});
+			const output = formatter.render();
+
+			const firstLine = output.split("\n")[0];
+			expect(firstLine.length).toBe(60);
+
+			// Snapshot will show truncation on other columns, but 'name' and 'price'
+			// will have a guaranteed minimum width.
+			expect(output).toMatchSnapshot();
+		});
+
+		it("should not let a flexGrow column exceed its maxWidth", () => {
+			const formatter = new TableFormatter(responsiveSource, {
+				maxWidth: 120, // Lots of extra space
+				columns: {
+					id: {},
+					name: {
+						flexGrow: 1,
+					},
+					price: {
+						alignment: "right",
+					},
+					category: {
+						flexGrow: 1,
+						maxWidth: 20, // This column will grow, but stop at 20 width
+					},
+				},
+			});
+			const output = formatter.render();
+
+			// The 'name' column should have received the lion's share of the extra space,
+			// because 'category' was capped.
+			expect(output).toMatchSnapshot();
+		});
+
+		it("should correctly handle a complex scenario with all constraints", () => {
+			const data = [{ a: "short", b: "medium length", c: "c", d: "d" }];
+			const source = new JSONDataSource(data);
+			const formatter = new TableFormatter(source, {
+				maxWidth: 80,
+				columns: {
+					a: {
+						// Will be forced wider by minWidth
+						minWidth: 15,
+					},
+					b: {
+						// Will start at ideal width and stay there
+					},
+					c: {
+						// Will take a small share of extra space
+						flexGrow: 1,
+					},
+					d: {
+						// Will grow but stop at 10, giving the rest of its share away
+						flexGrow: 2,
+						maxWidth: 10,
+					},
+				},
+			});
+
+			const output = formatter.render();
+			const firstLine = output.split("\n")[0];
+			expect(firstLine.length).toBe(80);
+			expect(output).toMatchSnapshot();
+		});
+	});
 });

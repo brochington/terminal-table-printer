@@ -145,7 +145,48 @@ const wideFormatter = new TableFormatter(jsonDataSource, wideConfig);
 console.log(wideFormatter.render());
 
 console.log(
-  chalk.bold.yellow('\n--- 4. Long Table with Row Limiting and Footer ---')
+  chalk.bold.yellow('\n--- 4. Themed Table with RESPONSIVE Columns ---')
+);
+const themedConfig2: TableConfig = {
+  border: DOUBLE_LINE_BORDER,
+  theme: SOLARIZED_DARK_THEME,
+  alternatingRows: true,
+  columns: {
+    id: {
+      header: 'ID',
+      minWidth: 4, // This column should not get too small
+    },
+    name: {
+      header: 'Product Name',
+      // This column will take up the majority of the extra space
+      flexGrow: 1,
+      minWidth: 15, // but won't shrink smaller than 15 characters
+    },
+    value: {
+      header: 'Price',
+      alignment: 'right',
+      formatter: (val) => `$${Number(val).toFixed(2)}`,
+      minWidth: 10,
+    },
+    stock: {
+      header: 'Stock',
+      alignment: 'right',
+      style: { color: '#d33682' },
+      minWidth: 5,
+    },
+    status: {
+      formatter: (val) => (val as string).toUpperCase(),
+      style: { bold: true },
+      minWidth: 10,
+      alignment: 'center',
+    },
+  },
+};
+const themedFormatter2 = new TableFormatter(jsonDataSource, themedConfig2);
+console.log(themedFormatter2.render());
+
+console.log(
+  chalk.bold.yellow('\n--- 5. Long Table with Row Limiting and Footer ---')
 );
 const longConfig: TableConfig = {
   ...themedConfig,
@@ -159,7 +200,7 @@ const longConfig: TableConfig = {
 const longFormatter = new TableFormatter(jsonDataSource, longConfig);
 console.log(longFormatter.render());
 
-console.log(chalk.bold.yellow('\n--- 5. Apache Arrow Data Source Example ---'));
+console.log(chalk.bold.yellow('\n--- 6. Apache Arrow Data Source Example ---'));
 const arrowTable = tableFromArrays({
   flight: ['PA-224', 'UA-918', 'LH-454'],
   destination: ['Paris, France', 'Tokyo, Japan', 'Munich, Germany'],
@@ -180,7 +221,7 @@ const arrowConfig: TableConfig = {
 const arrowFormatter = new TableFormatter(arrowDataSource, arrowConfig);
 console.log(arrowFormatter.render());
 
-console.log(chalk.bold.yellow('\n--- Dynamic Styling Example ---'));
+console.log(chalk.bold.yellow('\n--- 7. Dynamic Styling Example ---'));
 
 const dynamicConfig: TableConfig = {
   alternatingRows: true,
@@ -224,7 +265,7 @@ const dynamicFormatter = new TableFormatter(jsonDataSource, dynamicConfig);
 console.log(dynamicFormatter.render());
 
 // --- EXAMPLE 4: 2D Color Gradient ---
-console.log(chalk.bold.yellow('\n--- 4. 2D Color Gradient ---'));
+console.log(chalk.bold.yellow('\n--- 8. 2D Color Gradient ---'));
 
 const rows2D = 8;
 const cols2D = 40;
@@ -270,7 +311,7 @@ for (let j = 0; j < cols2D; j++) {
 const gradientFormatter = new TableFormatter(gradientDataSource, gradientConfig);
 console.log(gradientFormatter.render());
 
-console.log(chalk.bold.yellow('\n--- 5. "Server Status" Dashboard ---'));
+console.log(chalk.bold.yellow('\n--- 9. "Server Status" Dashboard ---'));
 
 const serverData = [
   {
@@ -357,7 +398,7 @@ const serverConfig: TableConfig = {
 const serverFormatter = new TableFormatter(serverDataSource, serverConfig);
 console.log(serverFormatter.render());
 
-console.log(chalk.bold.yellow('\n--- 6. ASCII Art Heatmap ---'));
+console.log(chalk.bold.yellow('\n--- 10. ASCII Art Heatmap ---'));
 
 const rows = 12;
 const cols = 40;
@@ -411,3 +452,44 @@ for (let j = 0; j < cols; j++) {
 
 const heatMapFormatter = new TableFormatter(heatMapSource, heatMapConfig);
 console.log(heatMapFormatter.render());
+
+// console.log(
+//   chalk.bold.yellow('\n--- 2. Themed Table with RESPONSIVE Columns ---')
+// );
+// const themedConfig2: TableConfig = {
+//   border: DOUBLE_LINE_BORDER,
+//   theme: SOLARIZED_DARK_THEME,
+//   alternatingRows: true,
+//   columns: {
+//     id: {
+//       header: 'ID',
+//       minWidth: 4, // This column should not get too small
+//     },
+//     name: {
+//       header: 'Product Name',
+//       // This column will take up the majority of the extra space
+//       flexGrow: 1,
+//       minWidth: 15, // but won't shrink smaller than 15 characters
+//     },
+//     value: {
+//       header: 'Price',
+//       alignment: 'right',
+//       formatter: (val) => `$${Number(val).toFixed(2)}`,
+//       minWidth: 10,
+//     },
+//     stock: {
+//       header: 'Stock',
+//       alignment: 'right',
+//       style: { color: '#d33682' },
+//       minWidth: 5,
+//     },
+//     status: {
+//       formatter: (val) => (val as string).toUpperCase(),
+//       style: { bold: true },
+//       minWidth: 10,
+//       alignment: 'center',
+//     },
+//   },
+// };
+// const themedFormatter2 = new TableFormatter(jsonDataSource, themedConfig2);
+// console.log(themedFormatter2.render());

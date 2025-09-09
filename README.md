@@ -6,8 +6,9 @@ A TypeScript library for rendering JSON or Apache Arrow data into styled, respon
 
 - **Data Sources**: Renders data from `JSONObject[]` or Apache Arrow `Table` objects.
 - **Styling**: Customize colors (hex codes supported), background colors, and text styles (`bold`, `italic`, `underline`).
+- **Responsive Layout**: Columns can intelligently grow and shrink to fit the terminal width using flexbox-like controls (`minWidth`, `maxWidth`, `flexGrow`).
 - **Dynamic Formatting**: Apply styles to rows or cells conditionally based on their data.
-- **Layout Control**: Supports text alignment, per-column padding, and automatic content truncation based on a `maxWidth`.
+- **Layout Control**: Supports text alignment, per-column padding, and automatic content truncation.
 - **Customizable**: Full control over border characters and themes.
 
 ## Installation
@@ -99,8 +100,7 @@ const arrowTable = tableFromArrays({
   name: ['Alice', 'Bob'],
   role: ['Admin', 'User'],
 });
-const dataSource = new ArrowDataSource(arrowTable);
-```
+const dataSource = new ArrowDataSource(arrowTable);```
 
 ## Configuration
 
@@ -145,6 +145,40 @@ const config = {
 };
 ```
 
+### Responsive Layout (Flexible Columns)
+
+To make tables automatically adapt to the terminal's width, you can use `minWidth`, `maxWidth`, and `flexGrow` on a per-column basis. The table will fill the available width (or the global `maxWidth` if set) and distribute space intelligently.
+
+- `minWidth`: The minimum content width this column can shrink to.
+- `maxWidth`: The maximum content width this column can grow to.
+- `flexGrow`: A ratio that dictates how much of the *remaining* space this column should claim.
+
+```typescript
+const config = {
+  // No global maxWidth is set, so the table will try to use the full terminal width
+  columns: {
+    id: {
+      minWidth: 5, // Won't shrink below 5 characters
+    },
+    name: {
+      header: 'Product Name',
+      flexGrow: 1, // Will expand to take up all available extra space
+      minWidth: 20, // But will truncate if the terminal is too narrow
+    },
+    status: {
+      flexGrow: 1, // Also expands, sharing space with 'name'
+      maxWidth: 15, // But will never grow wider than 15 characters
+    },
+    price: {
+      alignment: 'right',
+      minWidth: 10, // Resists shrinking
+    }
+  }
+};
+```
+
+When run in a wide terminal, the `name` and `status` columns will expand to fill the space. In a narrow terminal, all columns will shrink until they hit their `minWidth`, at which point their content will be truncated.
+
 ### Conditional Styling (Data-Driven)
 
 Apply styles dynamically based on the data of a row or a specific cell. This is the most powerful styling feature.
@@ -180,7 +214,8 @@ Control the table's dimensions and borders.
 import { DOUBLE_LINE_BORDER } from 'terminal-table-printer';
 
 const config = {
-  // Truncate table content if it exceeds 80 characters wide
+  // If set, imposes a maximum width on the entire table.
+  // If unset, the table defaults to the terminal's width.
   maxWidth: 80,
   
   // Display only 5 rows, starting from the 11th row (index 10)
